@@ -7,6 +7,7 @@
 </button>
 
 <script>
+  import { replay } from '../lib/replay';
   import { currentTheme, setTheme } from '../lib/theme';
 
   const btn = document.getElementById('theme') as HTMLButtonElement;
@@ -15,9 +16,7 @@
   sync();
   btn.addEventListener('click', () => {
     setTheme(currentTheme() === 'light' ? 'dark' : 'light');
-    label.classList.remove('flip');
-    void label.offsetWidth;
-    label.classList.add('flip');
+    replay(label, 'flip');
     sync();
   });
 </script>

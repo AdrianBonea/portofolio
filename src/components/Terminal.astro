@@ -7,17 +7,26 @@ const { class: className, ...attrs } = Astro.props;
 
 const { label } = experience();
 
+// One row of `stack --list` output per group; the first column is padded so the rest line up.
+const stack = [
+  ['React', 'Next.js', 'TypeScript'],
+  ['Node', 'Postgres'],
+  ['Expo', 'GitHub Actions'],
+];
+const col = Math.max(...stack.map(([first]) => first.length)) + 2;
+
 // Typed into the hero terminal: commands are typed char by char, output appears at once.
 const lines = [
   { text: '$ stack --list', tone: 'cmd' },
-  { text: 'react  next.js  typescript', tone: 'out' },
-  { text: 'node   postgres', tone: 'out' },
-  { text: 'expo   github actions', tone: 'out' },
+  ...stack.map(([first, ...rest]) => ({
+    text: [first.padEnd(col), rest.join('  ')].join('').toLowerCase(),
+    tone: 'out',
+  })),
   { text: '$ experience', tone: 'cmd' },
   { text: label, tone: 'accent', years: 'label' },
 ];
 
-const aria = 'Terminal: React, Next.js, TypeScript, Node, Postgres, Expo, GitHub Actions — {label} of experience';
+const aria = `Terminal: ${stack.flat().join(', ')} — {label} of experience`;
 ---
 
 <div
@@ -33,7 +42,7 @@ const aria = 'Terminal: React, Next.js, TypeScript, Node, Postgres, Expo, GitHub
   </div>
   <div class="term-body" aria-hidden="true">
     <div id="typer">
-      {lines.map((l) => <div class={`line ${l.tone}`} data-years={l.years}>{l.text}</div>)}
+      {lines.map((l) => <div class={`line ${l.tone}`} data-tone={l.tone} data-years={l.years}>{l.text}</div>)}
     </div>
   </div>
 </div>
@@ -50,7 +59,7 @@ const aria = 'Terminal: React, Next.js, TypeScript, Node, Postgres, Expo, GitHub
   if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
     const lines = [...typer.querySelectorAll<HTMLElement>('.line')].map((el) => ({
       text: el.textContent ?? '',
-      cls: el.className,
+      tone: el.dataset.tone ?? 'out',
     }));
     typer.innerHTML = '';
     // Typewriter parses its input as HTML, so escape the text before wrapping it.
@@ -63,8 +72,8 @@ const aria = 'Terminal: React, Next.js, TypeScript, Node, Postgres, Expo, GitHub
     });
     tw.pauseFor(900);
     for (const l of lines) {
-      const html = `<div class="${esc(l.cls)}">${esc(l.text)}</div>`;
-      if (l.cls.includes('cmd')) tw.typeString(html).pauseFor(450);
+      const html = `<div class="line ${esc(l.tone)}">${esc(l.text)}</div>`;
+      if (l.tone === 'cmd') tw.typeString(html).pauseFor(450);
       else tw.pasteString(html, null).pauseFor(160);
     }
     tw.start();
@@ -106,19 +115,7 @@ const aria = 'Terminal: React, Next.js, TypeScript, Node, Postgres, Expo, GitHub
     /* Fixed to 7 rows (6 lines + the cursor's row) so typing never resizes the hero. */
     height: calc(7 * 26px + 38px);
   }
-  .line {
-    white-space: pre-wrap;
-  }
-  .cmd {
-    color: var(--dim);
-  }
-  .out {
-    color: var(--out);
-  }
-  .accent {
-    color: var(--accent);
-  }
-  /* Typed lines are injected at runtime, so they need :global to get styles. */
+  /* Typed lines are injected at runtime, so these are :global; they match the server-rendered lines too. */
   #typer :global(.line) {
     white-space: pre-wrap;
   }

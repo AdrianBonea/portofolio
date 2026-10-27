@@ -8,6 +8,7 @@
 
 <script>
   import confetti from 'canvas-confetti';
+  import { replay } from '../lib/replay';
 
   const brand = document.getElementById('brand') as HTMLButtonElement;
   let clicks = 0;
@@ -29,9 +30,7 @@
       scalar: 0.9,
       disableForReducedMotion: true,
     });
-    brand.classList.remove('party');
-    void brand.offsetWidth;
-    brand.classList.add('party');
+    replay(brand, 'party');
   });
 </script>
 
