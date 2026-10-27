@@ -1,0 +1,10 @@
+// Static site: Workers only serves the files Astro builds into dist/.
+// Having this file stops `wrangler deploy` from auto-configuring an SSR adapter in CI.
+{
+  "$schema": "https://unpkg.com/wrangler/config-schema.json",
+  "name": "portofolio",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist"
+  }
+}
