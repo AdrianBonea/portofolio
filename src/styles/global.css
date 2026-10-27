@@ -1,0 +1,66 @@
+:root {
+  --bg: #0b0b0c;
+  --panel: #111113;
+  --fg: #ececea;
+  --muted: #8e8e93;
+  --line: #232326;
+  --accent: #e8a53a;
+  --dim: #6e6e73;
+  --out: #c8c8c4;
+
+  --mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+  --sans: 'Inter Variable', system-ui, sans-serif;
+}
+
+:root[data-theme='light'] {
+  --bg: #f7f6f3;
+  --panel: #ffffff;
+  --fg: #18181a;
+  --muted: #66666b;
+  --line: #e3e1dc;
+  --accent: #a15c00;
+  --dim: #8a8a8f;
+  --out: #3a3a3d;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
