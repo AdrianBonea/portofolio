@@ -13,6 +13,10 @@
     "@fontsource-variable/inter": "^5.3.0",
     "@fontsource-variable/jetbrains-mono": "^5.3.0",
     "astro": "^7.4.2",
+    "canvas-confetti": "^1.9.4",
     "typewriter-effect": "^3.3.0"
+  },
+  "devDependencies": {
+    "@types/canvas-confetti": "^1.9.0"
   }
 }

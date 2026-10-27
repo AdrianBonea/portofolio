@@ -31,7 +31,9 @@ const name = 'Adrian Bonea';
   <div class="glow" aria-hidden="true"></div>
   <div class="wrap">
     <header class="top reveal" style="--d:0">
-      <a href="/" class="brand">boneaadrian<span>.dev</span></a>
+      <button id="brand" class="brand" type="button" aria-label="boneaadrian.dev — click for a surprise">
+        boneaadrian<span>.dev</span>
+      </button>
       <nav>
         <a class="u" href="#contact">contact</a>
         <button id="theme" type="button" aria-label="Toggle light or dark theme">
@@ -126,6 +128,7 @@ const name = 'Adrian Bonea';
 </Base>
 
 <script>
+  import confetti from 'canvas-confetti';
   import Typewriter from 'typewriter-effect/dist/core';
   import { inWords, yearsOfExperience } from '../lib/experience';
 
@@ -136,6 +139,32 @@ const name = 'Adrian Bonea';
   document.querySelectorAll('[data-years]').forEach((el) => (el.textContent = `${years} years`));
   document.querySelectorAll('[data-years-word]').forEach((el) => (el.textContent = inWords(years)));
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Easter egg: confetti from the logo, a bigger burst every fifth click.
+  const brand = document.getElementById('brand') as HTMLButtonElement;
+  let clicks = 0;
+  brand.addEventListener('click', () => {
+    clicks++;
+    const css = getComputedStyle(root);
+    const colors = ['--accent', '--fg', '--muted', '--ok'].map((v) => css.getPropertyValue(v).trim());
+    const r = brand.getBoundingClientRect();
+    const origin = { x: (r.left + r.width / 2) / innerWidth, y: (r.top + r.height / 2) / innerHeight };
+    const big = clicks % 5 === 0;
+    confetti({
+      origin,
+      colors,
+      angle: 300,
+      spread: big ? 120 : 70,
+      particleCount: big ? 220 : 70,
+      startVelocity: big ? 55 : 35,
+      ticks: 220,
+      scalar: 0.9,
+      disableForReducedMotion: true,
+    });
+    brand.classList.remove('party');
+    void brand.offsetWidth;
+    brand.classList.add('party');
+  });
 
   // Theme toggle
   const btn = document.getElementById('theme') as HTMLButtonElement;
@@ -315,7 +344,24 @@ const name = 'Adrian Bonea';
     color: var(--muted);
   }
   .brand {
+    height: 44px;
+    padding: 0;
+    border: 0;
+    background: none;
     color: var(--fg);
+    font: inherit;
+    cursor: pointer;
+  }
+  .brand.party span {
+    animation: wiggle 0.5s cubic-bezier(0.3, 1.6, 0.5, 1);
+  }
+  @keyframes wiggle {
+    30% {
+      transform: translateY(-4px) rotate(-8deg);
+    }
+    60% {
+      transform: translateY(1px) rotate(5deg);
+    }
   }
   .brand span {
     color: var(--accent);
