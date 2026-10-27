@@ -1,5 +1,9 @@
 ---
 import Base from '../layouts/Base.astro';
+import { inWords, yearsOfExperience } from '../lib/experience';
+
+// Rendered at build time, then refreshed in the browser so it stays right between deploys.
+const years = yearsOfExperience();
 
 const email = 'hello@boneaadrian.dev';
 const links = [
@@ -14,7 +18,7 @@ const lines = [
   { text: 'node   postgres', tone: 'out' },
   { text: 'expo   github actions', tone: 'out' },
   { text: '$ experience', tone: 'cmd' },
-  { text: '4 years', tone: 'accent' },
+  { text: `${years} years`, tone: 'accent', years: true },
 ];
 
 const name = 'Adrian Bonea';
@@ -22,7 +26,7 @@ const name = 'Adrian Bonea';
 
 <Base
   title="Adrian Bonea — Software Developer"
-  description="Full-stack developer with four years of building web and mobile products with React, Next.js, Node, Postgres and Expo."
+  description={`Full-stack developer with ${inWords(years)} years of building web and mobile products with React, Next.js, Node, Postgres and Expo.`}
 >
   <div class="glow" aria-hidden="true"></div>
   <div class="wrap">
@@ -50,19 +54,20 @@ const name = 'Adrian Bonea';
             }
           </h1>
           <p class="lede reveal" style="--d:6">
-            Full-stack developer with four years of building web and mobile products — rooted in the frontend,
+            Full-stack developer with <span data-years-word>{inWords(years)}</span> years of building web and mobile products — rooted in the frontend,
             comfortable all the way down to the database.
           </p>
         </div>
 
-        <div class="term reveal" style="--d:4" role="img" aria-label="Terminal: React, Next.js, TypeScript, Node, Postgres, Expo, GitHub Actions — 4 years of experience">
+        <div class="term reveal" style="--d:4" role="img" aria-label={`Terminal: React, Next.js, TypeScript, Node, Postgres, Expo, GitHub Actions — ${years} years of experience`}>
           <div class="term-bar" aria-hidden="true">
             <span class="dots"><i></i><i></i><i></i></span>
             <span>zsh</span>
           </div>
           <div class="term-body" aria-hidden="true">
-            {lines.map((l) => <div class={`line ${l.tone}`} data-text={l.text}>{l.text}</div>)}
-            <span class="cursor"></span>
+            <div id="typer">
+              {lines.map((l) => <div class={`line ${l.tone}`} data-years={l.years}>{l.text}</div>)}
+            </div>
           </div>
         </div>
       </section>
@@ -112,7 +117,15 @@ const name = 'Adrian Bonea';
 </Base>
 
 <script>
+  import Typewriter from 'typewriter-effect/dist/core';
+  import { inWords, yearsOfExperience } from '../lib/experience';
+
   const root = document.documentElement;
+
+  // Keep the years current even if the site hasn't been rebuilt in a while.
+  const years = yearsOfExperience();
+  document.querySelectorAll('[data-years]').forEach((el) => (el.textContent = `${years} years`));
+  document.querySelectorAll('[data-years-word]').forEach((el) => (el.textContent = inWords(years)));
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // Theme toggle
@@ -133,34 +146,28 @@ const name = 'Adrian Bonea';
     sync();
   });
 
-  // Terminal typing
-  const typeTerminal = async () => {
-    const els = [...document.querySelectorAll<HTMLElement>('.term-body .line')];
-    if (reduced) return;
-    els.forEach((el) => {
-      el.textContent = '';
-      el.hidden = true;
+  // Terminal typing: commands are typed key by key, their output prints line by line.
+  // The lines are server-rendered, so without JS or with reduced motion they simply show.
+  const typer = document.getElementById('typer') as HTMLElement;
+  if (!reduced) {
+    const lines = [...typer.querySelectorAll<HTMLElement>('.line')].map((el) => ({
+      text: el.textContent ?? '',
+      cls: el.className,
+    }));
+    typer.innerHTML = '';
+    const tw = new Typewriter(typer, {
+      delay: { min: 40, max: 110 },
+      cursor: '▋',
+      cursorClassName: 'tw-cursor',
     });
-    const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
-    await wait(900);
-    for (const el of els) {
-      const text = el.dataset.text ?? '';
-      el.hidden = false;
-      if (el.classList.contains('cmd')) {
-        el.textContent = '$ ';
-        for (const ch of text.slice(2)) {
-          el.textContent += ch;
-          await wait(45 + Math.random() * 55);
-        }
-        await wait(260);
-      } else {
-        el.textContent = text;
-        el.classList.add('pop');
-        await wait(140);
-      }
+    tw.pauseFor(900);
+    for (const l of lines) {
+      const html = `<div class="${l.cls}">${l.text}</div>`;
+      if (l.cls.includes('cmd')) tw.typeString(html).pauseFor(450);
+      else tw.pasteString(html, null).pauseFor(160);
     }
-  };
-  typeTerminal();
+    tw.start();
+  }
 
   // Reveal on scroll
   const io = new IntersectionObserver(
@@ -399,15 +406,6 @@ const name = 'Adrian Bonea';
     border-radius: 8px;
     background: var(--panel);
     font: 13px/2 var(--mono);
-    transition:
-      border-color 0.3s,
-      transform 0.4s cubic-bezier(0.2, 0.7, 0.2, 1),
-      box-shadow 0.4s;
-  }
-  .term:hover {
-    border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
-    transform: translateY(-3px);
-    box-shadow: 0 20px 50px -20px var(--glow);
   }
   .term-bar {
     display: flex;
@@ -428,14 +426,11 @@ const name = 'Adrian Bonea';
     height: 8px;
     border-radius: 999px;
     border: 1px solid var(--line);
-    transition: background-color 0.3s;
-  }
-  .term:hover .dots i {
-    background: var(--line);
   }
   .term-body {
     padding: 18px 20px 20px;
-    min-height: 196px;
+    /* Fixed to 7 rows (6 lines + the cursor's row) so typing never resizes the hero. */
+    height: calc(7 * 26px + 38px);
   }
   .line {
     white-space: pre-wrap;
@@ -449,16 +444,21 @@ const name = 'Adrian Bonea';
   .accent {
     color: var(--accent);
   }
-  .pop {
-    animation: pop 0.35s ease-out both;
+  /* Typed lines are injected at runtime, so they need :global to get styles. */
+  #typer :global(.line) {
+    white-space: pre-wrap;
   }
-  .cursor {
-    display: inline-block;
-    width: 7px;
-    height: 15px;
-    vertical-align: middle;
-    background: var(--accent);
-    animation: blink 1.1s steps(1) infinite;
+  #typer :global(.cmd) {
+    color: var(--dim);
+  }
+  #typer :global(.out) {
+    color: var(--out);
+  }
+  #typer :global(.accent) {
+    color: var(--accent);
+  }
+  #typer :global(.tw-cursor) {
+    color: var(--accent);
   }
 
   .contact {
