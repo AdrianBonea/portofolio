@@ -193,6 +193,9 @@ const name = 'Adrian Bonea';
       cls: el.className,
     }));
     typer.innerHTML = '';
+    // Typewriter parses its input as HTML, so escape the text before wrapping it.
+    const esc = (s: string) =>
+      s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
     const tw = new Typewriter(typer, {
       delay: { min: 40, max: 110 },
       cursor: '▋',
@@ -200,7 +203,7 @@ const name = 'Adrian Bonea';
     });
     tw.pauseFor(900);
     for (const l of lines) {
-      const html = `<div class="${l.cls}">${l.text}</div>`;
+      const html = `<div class="${esc(l.cls)}">${esc(l.text)}</div>`;
       if (l.cls.includes('cmd')) tw.typeString(html).pauseFor(450);
       else tw.pasteString(html, null).pauseFor(160);
     }
