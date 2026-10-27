@@ -1,0 +1,50 @@
+---
+// Dark/light switch. Storage and the <html> attribute are owned by lib/theme.ts.
+---
+
+<button id="theme" type="button" aria-label="Toggle light or dark theme">
+  <span class="theme-label">dark</span>
+</button>
+
+<script>
+  import { currentTheme, setTheme } from '../lib/theme';
+
+  const btn = document.getElementById('theme') as HTMLButtonElement;
+  const label = btn.querySelector('.theme-label') as HTMLElement;
+  const sync = () => (label.textContent = currentTheme());
+  sync();
+  btn.addEventListener('click', () => {
+    setTheme(currentTheme() === 'light' ? 'dark' : 'light');
+    label.classList.remove('flip');
+    void label.offsetWidth;
+    label.classList.add('flip');
+    sync();
+  });
+</script>
+
+<style>
+  #theme {
+    height: 44px;
+    padding: 0 4px;
+    border: 0;
+    background: none;
+    color: var(--muted);
+    font: 13px var(--mono);
+    cursor: pointer;
+  }
+  #theme:hover {
+    color: var(--fg);
+  }
+  .theme-label {
+    display: inline-block;
+  }
+  .theme-label.flip {
+    animation: flip 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  @keyframes flip {
+    from {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+  }
+</style>

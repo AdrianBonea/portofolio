@@ -2,6 +2,7 @@
 import '@fontsource-variable/inter';
 import '@fontsource-variable/jetbrains-mono';
 import '../styles/global.css';
+import { THEME_KEY } from '../lib/theme';
 
 interface Props {
   title: string;
@@ -27,10 +28,10 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
-    <!-- Apply the saved theme before first paint to avoid a flash. Dark is the default. -->
-    <script is:inline>
+    <!-- Apply the saved theme before first paint to avoid a flash. Dark is the default. See lib/theme.ts. -->
+    <script is:inline define:vars={{ THEME_KEY }}>
       try {
-        if (localStorage.getItem('theme') === 'light') document.documentElement.dataset.theme = 'light';
+        if (localStorage.getItem(THEME_KEY) === 'light') document.documentElement.dataset.theme = 'light';
       } catch {}
     </script>
   </head>

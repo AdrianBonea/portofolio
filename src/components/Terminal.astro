@@ -1,0 +1,137 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+import { experience } from '../lib/experience';
+
+type Props = HTMLAttributes<'div'>;
+const { class: className, ...attrs } = Astro.props;
+
+const { label } = experience();
+
+// Typed into the hero terminal: commands are typed char by char, output appears at once.
+const lines = [
+  { text: '$ stack --list', tone: 'cmd' },
+  { text: 'react  next.js  typescript', tone: 'out' },
+  { text: 'node   postgres', tone: 'out' },
+  { text: 'expo   github actions', tone: 'out' },
+  { text: '$ experience', tone: 'cmd' },
+  { text: label, tone: 'accent', years: 'label' },
+];
+
+const aria = 'Terminal: React, Next.js, TypeScript, Node, Postgres, Expo, GitHub Actions — {label} of experience';
+---
+
+<div
+  class:list={['term', className]}
+  role="img"
+  aria-label={aria.replace('{label}', label)}
+  data-years-aria={aria}
+  {...attrs}
+>
+  <div class="term-bar" aria-hidden="true">
+    <span class="dots"><i></i><i></i><i></i></span>
+    <span>zsh</span>
+  </div>
+  <div class="term-body" aria-hidden="true">
+    <div id="typer">
+      {lines.map((l) => <div class={`line ${l.tone}`} data-years={l.years}>{l.text}</div>)}
+    </div>
+  </div>
+</div>
+
+<script>
+  import Typewriter from 'typewriter-effect/dist/core';
+  import { refreshYears } from '../lib/experience';
+
+  // Commands are typed key by key, their output prints line by line.
+  // The lines are server-rendered, so without JS or with reduced motion they simply show.
+  const typer = document.getElementById('typer') as HTMLElement;
+  // Refresh before the lines are read, since the typed copies lose their data-years markers.
+  refreshYears(typer);
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const lines = [...typer.querySelectorAll<HTMLElement>('.line')].map((el) => ({
+      text: el.textContent ?? '',
+      cls: el.className,
+    }));
+    typer.innerHTML = '';
+    // Typewriter parses its input as HTML, so escape the text before wrapping it.
+    const esc = (s: string) =>
+      s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+    const tw = new Typewriter(typer, {
+      delay: { min: 40, max: 110 },
+      cursor: '▋',
+      cursorClassName: 'tw-cursor',
+    });
+    tw.pauseFor(900);
+    for (const l of lines) {
+      const html = `<div class="${esc(l.cls)}">${esc(l.text)}</div>`;
+      if (l.cls.includes('cmd')) tw.typeString(html).pauseFor(450);
+      else tw.pasteString(html, null).pauseFor(160);
+    }
+    tw.start();
+  }
+</script>
+
+<style>
+  .term {
+    flex: 1 1 340px;
+    min-width: 0;
+    max-width: 560px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel);
+    font: 13px/2 var(--mono);
+  }
+  .term-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--line);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+  .dots {
+    display: flex;
+    gap: 6px;
+  }
+  .dots i {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+  }
+  .term-body {
+    padding: 18px 20px 20px;
+    /* Fixed to 7 rows (6 lines + the cursor's row) so typing never resizes the hero. */
+    height: calc(7 * 26px + 38px);
+  }
+  .line {
+    white-space: pre-wrap;
+  }
+  .cmd {
+    color: var(--dim);
+  }
+  .out {
+    color: var(--out);
+  }
+  .accent {
+    color: var(--accent);
+  }
+  /* Typed lines are injected at runtime, so they need :global to get styles. */
+  #typer :global(.line) {
+    white-space: pre-wrap;
+  }
+  #typer :global(.cmd) {
+    color: var(--dim);
+  }
+  #typer :global(.out) {
+    color: var(--out);
+  }
+  #typer :global(.accent) {
+    color: var(--accent);
+  }
+  #typer :global(.tw-cursor) {
+    color: var(--accent);
+  }
+</style>

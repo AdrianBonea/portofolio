@@ -1,44 +1,28 @@
 ---
 import Base from '../layouts/Base.astro';
-import { inWords, yearsOfExperience } from '../lib/experience';
+import Brand from '../components/Brand.astro';
+import Contact from '../components/Contact.astro';
+import Terminal from '../components/Terminal.astro';
+import ThemeToggle from '../components/ThemeToggle.astro';
+import { experience } from '../lib/experience';
 
 // Rendered at build time, then refreshed in the browser so it stays right between deploys.
-const years = yearsOfExperience();
-
-const email = 'hello@boneaadrian.dev';
-const links = [
-  { label: 'linkedin', value: 'in/adrian-mirel-bonea', href: 'https://www.linkedin.com/in/adrian-mirel-bonea/' },
-  { label: 'github', value: 'AdrianBonea', href: 'https://github.com/AdrianBonea' },
-];
-
-// Typed into the hero terminal: commands are typed char by char, output appears at once.
-const lines = [
-  { text: '$ stack --list', tone: 'cmd' },
-  { text: 'react  next.js  typescript', tone: 'out' },
-  { text: 'node   postgres', tone: 'out' },
-  { text: 'expo   github actions', tone: 'out' },
-  { text: '$ experience', tone: 'cmd' },
-  { text: `${years} years`, tone: 'accent', years: true },
-];
+const { words } = experience();
 
 const name = 'Adrian Bonea';
 ---
 
 <Base
   title="Adrian Bonea — Software Developer"
-  description={`Full-stack developer with ${inWords(years)} years of building web and mobile products with React, Next.js, Node, Postgres and Expo.`}
+  description={`Full-stack developer with ${words} years of building web and mobile products with React, Next.js, Node, Postgres and Expo.`}
 >
   <div class="glow" aria-hidden="true"></div>
   <div class="wrap">
     <header class="top reveal" style="--d:0">
-      <button id="brand" class="brand" type="button" aria-label="boneaadrian.dev — click for a surprise">
-        boneaadrian<span>.dev</span>
-      </button>
+      <Brand />
       <nav>
         <a class="u" href="#contact">contact</a>
-        <button id="theme" type="button" aria-label="Toggle light or dark theme">
-          <span class="theme-label">dark</span>
-        </button>
+        <ThemeToggle />
       </nav>
     </header>
 
@@ -65,55 +49,15 @@ const name = 'Adrian Bonea';
             }
           </h1>
           <p class="lede reveal" style="--d:6">
-            Full-stack developer with <span data-years-word>{inWords(years)}</span> years of building web and mobile products — rooted in the frontend,
+            Full-stack developer with <span data-years="words">{words}</span> years of building web and mobile products — rooted in the frontend,
             comfortable all the way down to the database.
           </p>
         </div>
 
-        <div class="term reveal" style="--d:4" role="img" aria-label={`Terminal: React, Next.js, TypeScript, Node, Postgres, Expo, GitHub Actions — ${years} years of experience`}>
-          <div class="term-bar" aria-hidden="true">
-            <span class="dots"><i></i><i></i><i></i></span>
-            <span>zsh</span>
-          </div>
-          <div class="term-body" aria-hidden="true">
-            <div id="typer">
-              {lines.map((l) => <div class={`line ${l.tone}`} data-years={l.years}>{l.text}</div>)}
-            </div>
-          </div>
-        </div>
+        <Terminal class="reveal" style="--d:4" />
       </section>
 
-      <section id="contact" class="contact">
-        <div class="contact-head scroll-in">
-          <h2>Get in touch.</h2>
-          <p><span class="pulse" aria-hidden="true"></span>Open to new opportunities</p>
-        </div>
-        <ul>
-          <li class="scroll-in" style="--d:1">
-            <button class="row" id="copy-email" type="button" data-email={email}>
-              <span class="label">email</span>
-              <span class="value">{email}</span>
-              <span class="hint" aria-hidden="true">
-                <span class="hint-idle">copy</span>
-                <span class="hint-done">copied ✓</span>
-              </span>
-            </button>
-          </li>
-          {
-            links.map((c, i) => (
-              <li class="scroll-in" style={`--d:${i + 2}`}>
-                <a class="row" href={c.href} target="_blank" rel="me noopener noreferrer">
-                  <span class="label">{c.label}</span>
-                  <span class="value">{c.value}</span>
-                  <span class="arr" aria-hidden="true">↗</span>
-                  <span class="sr-only">(opens in a new tab)</span>
-                </a>
-              </li>
-            ))
-          }
-        </ul>
-        <p id="copy-status" class="sr-only" role="status" aria-live="polite"></p>
-      </section>
+      <Contact />
     </main>
 
     <footer class="scroll-in">
@@ -121,94 +65,13 @@ const name = 'Adrian Bonea';
       <span>Bucharest, RO</span>
     </footer>
   </div>
-
-  <div id="toast" class="toast" aria-hidden="true">
-    <span class="toast-icon">✓</span> Email copied to clipboard
-  </div>
 </Base>
 
 <script>
-  import confetti from 'canvas-confetti';
-  import Typewriter from 'typewriter-effect/dist/core';
-  import { inWords, yearsOfExperience } from '../lib/experience';
+  import { refreshYears } from '../lib/experience';
 
-  const root = document.documentElement;
-
-  // Keep the years current even if the site hasn't been rebuilt in a while.
-  const years = yearsOfExperience();
-  document.querySelectorAll('[data-years]').forEach((el) => (el.textContent = `${years} years`));
-  document.querySelectorAll('[data-years-word]').forEach((el) => (el.textContent = inWords(years)));
-  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  // Easter egg: confetti from the logo, a bigger burst every fifth click.
-  const brand = document.getElementById('brand') as HTMLButtonElement;
-  let clicks = 0;
-  brand.addEventListener('click', () => {
-    clicks++;
-    const css = getComputedStyle(root);
-    const colors = ['--accent', '--fg', '--muted', '--ok'].map((v) => css.getPropertyValue(v).trim());
-    const r = brand.getBoundingClientRect();
-    const origin = { x: (r.left + r.width / 2) / innerWidth, y: (r.top + r.height / 2) / innerHeight };
-    const big = clicks % 5 === 0;
-    confetti({
-      origin,
-      colors,
-      angle: 300,
-      spread: big ? 120 : 70,
-      particleCount: big ? 220 : 70,
-      startVelocity: big ? 55 : 35,
-      ticks: 220,
-      scalar: 0.9,
-      disableForReducedMotion: true,
-    });
-    brand.classList.remove('party');
-    void brand.offsetWidth;
-    brand.classList.add('party');
-  });
-
-  // Theme toggle
-  const btn = document.getElementById('theme') as HTMLButtonElement;
-  const label = btn.querySelector('.theme-label') as HTMLElement;
-  const sync = () => (label.textContent = root.dataset.theme === 'light' ? 'light' : 'dark');
-  sync();
-  btn.addEventListener('click', () => {
-    const light = root.dataset.theme !== 'light';
-    if (light) root.dataset.theme = 'light';
-    else delete root.dataset.theme;
-    try {
-      localStorage.setItem('theme', light ? 'light' : 'dark');
-    } catch {}
-    label.classList.remove('flip');
-    void label.offsetWidth;
-    label.classList.add('flip');
-    sync();
-  });
-
-  // Terminal typing: commands are typed key by key, their output prints line by line.
-  // The lines are server-rendered, so without JS or with reduced motion they simply show.
-  const typer = document.getElementById('typer') as HTMLElement;
-  if (!reduced) {
-    const lines = [...typer.querySelectorAll<HTMLElement>('.line')].map((el) => ({
-      text: el.textContent ?? '',
-      cls: el.className,
-    }));
-    typer.innerHTML = '';
-    // Typewriter parses its input as HTML, so escape the text before wrapping it.
-    const esc = (s: string) =>
-      s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
-    const tw = new Typewriter(typer, {
-      delay: { min: 40, max: 110 },
-      cursor: '▋',
-      cursorClassName: 'tw-cursor',
-    });
-    tw.pauseFor(900);
-    for (const l of lines) {
-      const html = `<div class="${esc(l.cls)}">${esc(l.text)}</div>`;
-      if (l.cls.includes('cmd')) tw.typeString(html).pauseFor(450);
-      else tw.pasteString(html, null).pauseFor(160);
-    }
-    tw.start();
-  }
+  // Keep every years mention current even if the site hasn't been rebuilt in a while.
+  refreshYears();
 
   // Reveal on scroll
   const io = new IntersectionObserver(
@@ -226,50 +89,13 @@ const name = 'Adrian Bonea';
 
   // Soft glow following the pointer
   const glow = document.querySelector<HTMLElement>('.glow');
-  if (glow && !reduced && matchMedia('(pointer: fine)').matches) {
+  if (glow && !matchMedia('(prefers-reduced-motion: reduce)').matches && matchMedia('(pointer: fine)').matches) {
     addEventListener('pointermove', (e) => {
       glow.style.setProperty('--x', `${e.clientX}px`);
       glow.style.setProperty('--y', `${e.clientY}px`);
       glow.classList.add('on');
     });
   }
-
-  // Copy email
-  const copyBtn = document.getElementById('copy-email') as HTMLButtonElement;
-  const toast = document.getElementById('toast') as HTMLElement;
-  const status = document.getElementById('copy-status') as HTMLElement;
-  let timer: number | undefined;
-
-  const copy = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      return true;
-    } catch {
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      const ok = document.execCommand('copy');
-      ta.remove();
-      return ok;
-    }
-  };
-
-  copyBtn.addEventListener('click', async () => {
-    const ok = await copy(copyBtn.dataset.email ?? '');
-    if (!ok) return;
-    copyBtn.classList.add('copied');
-    toast.classList.add('show');
-    status.textContent = 'Email copied to clipboard';
-    clearTimeout(timer);
-    timer = window.setTimeout(() => {
-      copyBtn.classList.remove('copied');
-      toast.classList.remove('show');
-      status.textContent = '';
-    }, 2200);
-  });
 </script>
 
 <style>
@@ -288,15 +114,6 @@ const name = 'Adrian Bonea';
     }
   }
 
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
-  }
-
   /* Pointer glow */
   .glow {
     position: fixed;
@@ -310,33 +127,6 @@ const name = 'Adrian Bonea';
     opacity: 1;
   }
 
-  /* Entrance */
-  .reveal {
-    animation: rise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-    animation-delay: calc(var(--d, 0) * 0.08s);
-  }
-  .word {
-    display: inline-block;
-    white-space: nowrap;
-  }
-  .ch {
-    display: inline-block;
-    animation: char 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-    animation-delay: calc(0.15s + var(--c) * 0.04s);
-  }
-  .scroll-in {
-    opacity: 0;
-    transform: translateY(14px);
-    transition:
-      opacity 0.8s cubic-bezier(0.2, 0.7, 0.2, 1),
-      transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
-    transition-delay: calc(var(--d, 0) * 0.09s);
-  }
-  .scroll-in.in {
-    opacity: 1;
-    transform: none;
-  }
-
   .top {
     display: flex;
     justify-content: space-between;
@@ -346,34 +136,6 @@ const name = 'Adrian Bonea';
     font: 13px var(--mono);
     color: var(--muted);
   }
-  .brand {
-    height: 44px;
-    padding: 0;
-    border: 0;
-    background: none;
-    color: var(--fg);
-    font: inherit;
-    cursor: pointer;
-  }
-  .brand.party span {
-    animation: wiggle 0.5s cubic-bezier(0.3, 1.6, 0.5, 1);
-  }
-  @keyframes wiggle {
-    30% {
-      transform: translateY(-4px) rotate(-8deg);
-    }
-    60% {
-      transform: translateY(1px) rotate(5deg);
-    }
-  }
-  .brand span {
-    color: var(--accent);
-    display: inline-block;
-    transition: transform 0.3s;
-  }
-  .brand:hover span {
-    transform: translateX(2px);
-  }
   nav {
     display: flex;
     align-items: center;
@@ -381,24 +143,6 @@ const name = 'Adrian Bonea';
   }
   nav a {
     padding: 12px 0;
-  }
-  #theme {
-    height: 44px;
-    padding: 0 4px;
-    border: 0;
-    background: none;
-    color: var(--muted);
-    font: 13px var(--mono);
-    cursor: pointer;
-  }
-  #theme:hover {
-    color: var(--fg);
-  }
-  .theme-label {
-    display: inline-block;
-  }
-  .theme-label.flip {
-    animation: flip 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 
   .u {
@@ -453,250 +197,28 @@ const name = 'Adrian Bonea';
     letter-spacing: -0.045em;
     font-weight: 300;
   }
+  .word {
+    display: inline-block;
+    white-space: nowrap;
+  }
+  .ch {
+    display: inline-block;
+    animation: char 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation-delay: calc(0.15s + var(--c) * 0.04s);
+  }
+  @keyframes char {
+    from {
+      opacity: 0;
+      transform: translateY(0.4em);
+      filter: blur(6px);
+    }
+  }
   .lede {
     margin: 0;
     max-width: 480px;
     font-size: 19px;
     line-height: 1.65;
     color: var(--muted);
-  }
-
-  .term {
-    flex: 1 1 340px;
-    min-width: 0;
-    max-width: 560px;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    background: var(--panel);
-    font: 13px/2 var(--mono);
-  }
-  .term-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 16px;
-    border-bottom: 1px solid var(--line);
-    font-size: 11px;
-    letter-spacing: 0.06em;
-    color: var(--muted);
-  }
-  .dots {
-    display: flex;
-    gap: 6px;
-  }
-  .dots i {
-    width: 8px;
-    height: 8px;
-    border-radius: 999px;
-    border: 1px solid var(--line);
-  }
-  .term-body {
-    padding: 18px 20px 20px;
-    /* Fixed to 7 rows (6 lines + the cursor's row) so typing never resizes the hero. */
-    height: calc(7 * 26px + 38px);
-  }
-  .line {
-    white-space: pre-wrap;
-  }
-  .cmd {
-    color: var(--dim);
-  }
-  .out {
-    color: var(--out);
-  }
-  .accent {
-    color: var(--accent);
-  }
-  /* Typed lines are injected at runtime, so they need :global to get styles. */
-  #typer :global(.line) {
-    white-space: pre-wrap;
-  }
-  #typer :global(.cmd) {
-    color: var(--dim);
-  }
-  #typer :global(.out) {
-    color: var(--out);
-  }
-  #typer :global(.accent) {
-    color: var(--accent);
-  }
-  #typer :global(.tw-cursor) {
-    color: var(--accent);
-  }
-
-  .contact {
-    display: flex;
-    flex-direction: column;
-    gap: 40px;
-    padding: 56px 0 40px;
-    border-top: 1px solid var(--line);
-  }
-  .contact-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    flex-wrap: wrap;
-    gap: 24px;
-  }
-  h2 {
-    margin: 0;
-    font-size: clamp(26px, 3.4vw, 36px);
-    font-weight: 400;
-    letter-spacing: -0.02em;
-  }
-  .contact-head p {
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font: 13px var(--mono);
-    color: var(--muted);
-  }
-  .pulse {
-    position: relative;
-    width: 7px;
-    height: 7px;
-    border-radius: 999px;
-    background: var(--ok);
-  }
-  .pulse::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: var(--ok);
-    animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
-  }
-
-  ul {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    font: 15px var(--mono);
-    border-bottom: 1px solid var(--line);
-  }
-  .row {
-    position: relative;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 22px 0;
-    border: 0;
-    border-top: 1px solid var(--line);
-    background: none;
-    color: inherit;
-    font: inherit;
-    text-align: left;
-    cursor: pointer;
-    overflow: hidden;
-  }
-  /* Accent line that sweeps across the top border on hover */
-  .row::before {
-    content: '';
-    position: absolute;
-    top: -1px;
-    left: 0;
-    height: 1px;
-    width: 100%;
-    background: var(--accent);
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
-  }
-  .row:hover::before,
-  .row:focus-visible::before {
-    transform: scaleX(1);
-  }
-  .label {
-    width: 120px;
-    flex-shrink: 0;
-    color: var(--muted);
-    transition: color 0.25s;
-  }
-  .value {
-    flex: 1;
-    min-width: 0;
-    overflow-wrap: anywhere;
-    transition: transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
-  }
-  .row:hover .label {
-    color: var(--accent);
-  }
-  .row:hover .value {
-    transform: translateX(8px);
-  }
-  .arr {
-    color: var(--accent);
-    transition: transform 0.25s;
-  }
-  .row:hover .arr {
-    transform: translate(3px, -3px);
-  }
-  .hint {
-    display: grid;
-    font-size: 12px;
-    color: var(--muted);
-  }
-  .hint > span {
-    grid-area: 1 / 1;
-    text-align: right;
-    transition:
-      opacity 0.25s,
-      transform 0.25s;
-  }
-  .hint-done {
-    color: var(--accent);
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  .row:hover .hint-idle {
-    color: var(--accent);
-  }
-  .copied .hint-idle {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  .copied .hint-done {
-    opacity: 1;
-    transform: none;
-  }
-  /* Phones: label above the value so the email never has to wrap. */
-  @media (max-width: 600px) {
-    .row {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      column-gap: 16px;
-      row-gap: 4px;
-      padding: 18px 0;
-    }
-    .label {
-      width: auto;
-      grid-column: 1;
-      font-size: 12px;
-    }
-    .value {
-      grid-column: 1;
-      grid-row: 2;
-    }
-    .arr,
-    .hint {
-      grid-column: 2;
-      grid-row: 1 / span 2;
-      align-self: center;
-    }
-  }
-  /* No sticky hover effects on touch screens. */
-  @media (hover: none) {
-    .row:hover .value {
-      transform: none;
-    }
-    .row:hover::before {
-      transform: scaleX(0);
-    }
-    .row:hover .label {
-      color: var(--muted);
-    }
   }
 
   footer {
@@ -707,81 +229,5 @@ const name = 'Adrian Bonea';
     padding: 24px 0 calc(48px + env(safe-area-inset-bottom));
     font: 12px var(--mono);
     color: var(--muted);
-  }
-
-  .toast {
-    position: fixed;
-    left: 50%;
-    bottom: calc(32px + env(safe-area-inset-bottom));
-    max-width: calc(100vw - 40px);
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 18px;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    background: var(--panel);
-    color: var(--fg);
-    font: 13px var(--mono);
-    box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.45);
-    opacity: 0;
-    transform: translate(-50%, 16px);
-    pointer-events: none;
-    transition:
-      opacity 0.3s,
-      transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
-  }
-  .toast.show {
-    opacity: 1;
-    transform: translate(-50%, 0);
-  }
-  .toast-icon {
-    color: var(--accent);
-  }
-
-  @keyframes rise {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-  }
-  @keyframes char {
-    from {
-      opacity: 0;
-      transform: translateY(0.4em);
-      filter: blur(6px);
-    }
-  }
-  @keyframes pop {
-    from {
-      opacity: 0;
-      transform: translateX(-4px);
-    }
-  }
-  @keyframes blink {
-    50% {
-      opacity: 0;
-    }
-  }
-  @keyframes ping {
-    75%,
-    100% {
-      transform: scale(2.6);
-      opacity: 0;
-    }
-  }
-  @keyframes flip {
-    from {
-      opacity: 0;
-      transform: translateY(-6px);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .scroll-in {
-      opacity: 1;
-      transform: none;
-    }
   }
 </style>

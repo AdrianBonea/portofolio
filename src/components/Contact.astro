@@ -1,0 +1,296 @@
+---
+const email = 'hello@boneaadrian.dev';
+const links = [
+  { label: 'linkedin', value: 'in/adrian-mirel-bonea', href: 'https://www.linkedin.com/in/adrian-mirel-bonea/' },
+  { label: 'github', value: 'AdrianBonea', href: 'https://github.com/AdrianBonea' },
+];
+---
+
+<section id="contact" class="contact">
+  <div class="contact-head scroll-in">
+    <h2>Get in touch.</h2>
+    <p><span class="pulse" aria-hidden="true"></span>Open to new opportunities</p>
+  </div>
+  <ul>
+    <li class="scroll-in" style="--d:1">
+      <button class="row" id="copy-email" type="button" data-email={email}>
+        <span class="label">email</span>
+        <span class="value">{email}</span>
+        <span class="hint" aria-hidden="true">
+          <span class="hint-idle">copy</span>
+          <span class="hint-done">copied ✓</span>
+        </span>
+      </button>
+    </li>
+    {
+      links.map((c, i) => (
+        <li class="scroll-in" style={`--d:${i + 2}`}>
+          <a class="row" href={c.href} target="_blank" rel="me noopener noreferrer">
+            <span class="label">{c.label}</span>
+            <span class="value">{c.value}</span>
+            <span class="arr" aria-hidden="true">↗</span>
+            <span class="sr-only">(opens in a new tab)</span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+  <p id="copy-status" class="sr-only" role="status" aria-live="polite"></p>
+</section>
+
+<div id="toast" class="toast" aria-hidden="true">
+  <span class="toast-icon">✓</span> Email copied to clipboard
+</div>
+
+<script>
+  const copyBtn = document.getElementById('copy-email') as HTMLButtonElement;
+  const toast = document.getElementById('toast') as HTMLElement;
+  const status = document.getElementById('copy-status') as HTMLElement;
+  let timer: number | undefined;
+
+  const copy = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand('copy');
+      ta.remove();
+      return ok;
+    }
+  };
+
+  copyBtn.addEventListener('click', async () => {
+    const ok = await copy(copyBtn.dataset.email ?? '');
+    if (!ok) return;
+    copyBtn.classList.add('copied');
+    toast.classList.add('show');
+    status.textContent = 'Email copied to clipboard';
+    clearTimeout(timer);
+    timer = window.setTimeout(() => {
+      copyBtn.classList.remove('copied');
+      toast.classList.remove('show');
+      status.textContent = '';
+    }, 2200);
+  });
+</script>
+
+<style>
+  .contact {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    padding: 56px 0 40px;
+    border-top: 1px solid var(--line);
+  }
+  .contact-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 24px;
+  }
+  h2 {
+    margin: 0;
+    font-size: clamp(26px, 3.4vw, 36px);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+  }
+  .contact-head p {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font: 13px var(--mono);
+    color: var(--muted);
+  }
+  .pulse {
+    position: relative;
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: var(--ok);
+  }
+  .pulse::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--ok);
+    animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+  @keyframes ping {
+    75%,
+    100% {
+      transform: scale(2.6);
+      opacity: 0;
+    }
+  }
+
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font: 15px var(--mono);
+    border-bottom: 1px solid var(--line);
+  }
+  .row {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 22px 0;
+    border: 0;
+    border-top: 1px solid var(--line);
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    overflow: hidden;
+  }
+  /* Accent line that sweeps across the top border on hover */
+  .row::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 0;
+    height: 1px;
+    width: 100%;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .row:hover::before,
+  .row:focus-visible::before {
+    transform: scaleX(1);
+  }
+  .label {
+    width: 120px;
+    flex-shrink: 0;
+    color: var(--muted);
+    transition: color 0.25s;
+  }
+  .value {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    transition: transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .row:hover .label {
+    color: var(--accent);
+  }
+  .row:hover .value {
+    transform: translateX(8px);
+  }
+  .arr {
+    color: var(--accent);
+    transition: transform 0.25s;
+  }
+  .row:hover .arr {
+    transform: translate(3px, -3px);
+  }
+  .hint {
+    display: grid;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .hint > span {
+    grid-area: 1 / 1;
+    text-align: right;
+    transition:
+      opacity 0.25s,
+      transform 0.25s;
+  }
+  .hint-done {
+    color: var(--accent);
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  .row:hover .hint-idle {
+    color: var(--accent);
+  }
+  .copied .hint-idle {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  .copied .hint-done {
+    opacity: 1;
+    transform: none;
+  }
+  /* Phones: label above the value so the email never has to wrap. */
+  @media (max-width: 600px) {
+    .row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      column-gap: 16px;
+      row-gap: 4px;
+      padding: 18px 0;
+    }
+    .label {
+      width: auto;
+      grid-column: 1;
+      font-size: 12px;
+    }
+    .value {
+      grid-column: 1;
+      grid-row: 2;
+    }
+    .arr,
+    .hint {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+      align-self: center;
+    }
+  }
+  /* No sticky hover effects on touch screens. */
+  @media (hover: none) {
+    .row:hover .value {
+      transform: none;
+    }
+    .row:hover::before {
+      transform: scaleX(0);
+    }
+    .row:hover .label {
+      color: var(--muted);
+    }
+  }
+
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(32px + env(safe-area-inset-bottom));
+    max-width: calc(100vw - 40px);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 18px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel);
+    color: var(--fg);
+    font: 13px var(--mono);
+    box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.45);
+    opacity: 0;
+    transform: translate(-50%, 16px);
+    pointer-events: none;
+    transition:
+      opacity 0.3s,
+      transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  .toast-icon {
+    color: var(--accent);
+  }
+</style>

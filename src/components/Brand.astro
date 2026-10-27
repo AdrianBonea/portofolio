@@ -1,0 +1,67 @@
+---
+// Easter egg: confetti from the logo, a bigger burst every fifth click.
+---
+
+<button id="brand" class="brand" type="button" aria-label="boneaadrian.dev — click for a surprise">
+  boneaadrian<span>.dev</span>
+</button>
+
+<script>
+  import confetti from 'canvas-confetti';
+
+  const brand = document.getElementById('brand') as HTMLButtonElement;
+  let clicks = 0;
+  brand.addEventListener('click', () => {
+    clicks++;
+    const css = getComputedStyle(document.documentElement);
+    const colors = ['--accent', '--fg', '--muted', '--ok'].map((v) => css.getPropertyValue(v).trim());
+    const r = brand.getBoundingClientRect();
+    const origin = { x: (r.left + r.width / 2) / innerWidth, y: (r.top + r.height / 2) / innerHeight };
+    const big = clicks % 5 === 0;
+    confetti({
+      origin,
+      colors,
+      angle: 300,
+      spread: big ? 120 : 70,
+      particleCount: big ? 220 : 70,
+      startVelocity: big ? 55 : 35,
+      ticks: 220,
+      scalar: 0.9,
+      disableForReducedMotion: true,
+    });
+    brand.classList.remove('party');
+    void brand.offsetWidth;
+    brand.classList.add('party');
+  });
+</script>
+
+<style>
+  .brand {
+    height: 44px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--fg);
+    font: inherit;
+    cursor: pointer;
+  }
+  .brand.party span {
+    animation: wiggle 0.5s cubic-bezier(0.3, 1.6, 0.5, 1);
+  }
+  @keyframes wiggle {
+    30% {
+      transform: translateY(-4px) rotate(-8deg);
+    }
+    60% {
+      transform: translateY(1px) rotate(5deg);
+    }
+  }
+  .brand span {
+    color: var(--accent);
+    display: inline-block;
+    transition: transform 0.3s;
+  }
+  .brand:hover span {
+    transform: translateX(2px);
+  }
+</style>
